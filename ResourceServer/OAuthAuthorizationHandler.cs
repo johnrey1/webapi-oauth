@@ -1,15 +1,9 @@
 ﻿namespace WebApi.OAuth2
 {
-    using System.Collections.Generic;
-    using System.Collections.Specialized;
-    using System.IdentityModel.Policy;
+    using System;
     using System.Net.Http;
     using System.Security.Principal;
-    using DotNetOpenAuth.Messaging;
-    using DotNetOpenAuth.OAuth2;
-using System.Net.Http.Headers;
-    using System.Collections;
-    using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// A WebApi Message handler to check authorization on incoming web requests
@@ -30,79 +24,74 @@ using System.Net.Http.Headers;
         /// <returns></returns>
         protected override System.Threading.Tasks.Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, System.Threading.CancellationToken cancellationToken)
         {
-            // Check if user is authenticated...
+            
+
             try
             {
-                var principal = VerifyOAuth2(request);
-                                
-                if (principal != null)
-                {
-                    var policy = new OAuthPrincipalAuthorizationPolicy(principal);
-                    var policies = new List<IAuthorizationPolicy> {
-						policy,
-					};
-
-                    var securityContext = new ServiceSecurityContext(policies.AsReadOnly());
-                    if (operationContext.IncomingMessageProperties.Security != null)
-                    {
-                        operationContext.IncomingMessageProperties.Security.ServiceSecurityContext = securityContext;
-                    }
-                    else
-                    {
-                        operationContext.IncomingMessageProperties.Security = new SecurityMessageProperty
-                        {
-                            ServiceSecurityContext = securityContext,
-                        };
-                    }
-
-                    securityContext.AuthorizationContext.Properties["Identities"] = new List<IIdentity> {
-						principal.Identity,
-					};
-
-                    // Only allow this method call if the access token scope permits it.
-                    return principal.IsInRole();
+                var tcs = new TaskCompletionSource<HttpResponseMessage>();
+                
+                if (!IsSsl(request))
+                {                    
+                    tcs.SetResult(new HttpResponseMessage(System.Net.HttpStatusCode.BadRequest));
+                    return tcs.Task;        
                 }
-                else
+
+                if (!IsValidAccessToken(request))
                 {
-                    return false;
+                    // return 401 error
+                    tcs.SetResult(new HttpResponseMessage(System.Net.HttpStatusCode.Unauthorized));
+                    return tcs.Task;
                 }
+
+                if (!IsTokenAuthorized(request))
+                {
+                    // return 401 error
+                    tcs.SetResult(new HttpResponseMessage(System.Net.HttpStatusCode.Forbidden));
+                    return tcs.Task;
+                }
+
             }
-            catch (ProtocolException ex)
+            catch (Exception ex)
             {
-                //Global.Logger.Error("Error processing OAuth messages.", ex);
+                cancellationToken = new System.Threading.CancellationToken(true);
+            }
+
+            return base.SendAsync(request, cancellationToken);
+        }
+
+        /// <summary>
+        /// this should validate the access token against the requesturi and method it is attempting to execute
+        /// </summary>
+        /// <param name="accessToken"></param>
+        /// <returns></returns>
+        private static bool IsValidAccessToken(HttpRequestMessage request)
+        {
+            var accessToken = request.RequestUri.ParseQueryString()["access_token"];
+
+            // verify token exists and is not expired
+            
+            return accessToken == "asdf";
+        }
+
+        private static bool IsTokenAuthorized(HttpRequestMessage request)
+        {
+            // get role by access token
+            // get ownerid by access token
+            // get list of roles by access token
+            // validate that request / action is contained within role
+            // get list of roles by owner
+            // validate that roles of access token are still valid for the owner ( should we invalidate all tokens when a users role changes?)
+            return true;
+        }
+
+        private static bool IsSsl(HttpRequestMessage request)
+        {
+            if (request.RequestUri.Scheme.StartsWith("https://", StringComparison.CurrentCultureIgnoreCase))
+            {
+                return true;
             }
 
             return false;
         }
-
-
-
-        private static IPrincipal VerifyOAuth2(HttpRequestMessage request)
-        {
-            // for this sample where the auth server and resource server are the same site,
-            // we use the same public/private key.
-            using (var signing = EncryptionConfig.CreateAuthorizationServerSigningServiceProvider())
-            {
-                using (var encrypting = EncryptionConfig.CreateResourceServerEncryptionServiceProvider())
-                {
-                    var resourceServer = new ResourceServer(new StandardAccessTokenAnalyzer(signing, encrypting));
-
-                    IPrincipal result;
-
-                    
-
-                    var error = resourceServer.VerifyAccess(
-                                                        HttpRequestInfo.Create( request.Method.Method, 
-                                                                                request.RequestUri, 
-                                                                                null, 
-                                                                                request.Headers.ToNameValueCollection()),
-                                                        out result);
-
-                    // TODO: return the prepared error code.
-                    return error != null ? null : result;
-                }
-            }
-        }
-
     }
 }

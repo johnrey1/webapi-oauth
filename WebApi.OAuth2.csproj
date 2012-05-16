@@ -31,9 +31,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DotNetOpenAuth">
-      <HintPath>..\lib\DotNetOpenAuth.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.Web.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <Private>True</Private>
       <HintPath>..\packages\Microsoft.Web.Infrastructure.1.0.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
@@ -41,6 +38,7 @@
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Data.Linq" />
     <Reference Include="System.IdentityModel" />
     <Reference Include="System.Net" />
     <Reference Include="System.Net.Http, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
@@ -101,18 +99,37 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Controllers\OAuthController.cs" />
-    <Compile Include="HttpExtensionMethods.cs" />
+    <Compile Include="Model\Authorization.cs">
+      <DependentUpon>Authorization.dbml</DependentUpon>
+    </Compile>
+    <Compile Include="Model\Authorization.designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Authorization.dbml</DependentUpon>
+    </Compile>
     <Compile Include="OAuthApiApplication.cs" />
-    <Compile Include="EncryptionConfig.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ResourceServer\OAuthAuthorizationHandler.cs" />
-    <Compile Include="ResourceServer\OAuthPrincipalAuthorizationPolicy.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Model\Authorization.dbml">
+      <Generator>MSLinqToSQLGenerator</Generator>
+      <LastGenOutput>Authorization.designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+      <CustomToolNamespace>WebApi.OAuth2</CustomToolNamespace>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="AuthorizationServer\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{3259AA49-8AA1-44D3-9025-A0B520596A8C}" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Model\Authorization.dbml.layout">
+      <DependentUpon>Authorization.dbml</DependentUpon>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
