@@ -69,7 +69,7 @@
 
         private static bool IsSsl(HttpRequestMessage request)
         {
-            if (request.RequestUri.Scheme.StartsWith("https://", StringComparison.CurrentCultureIgnoreCase))
+            if (request.RequestUri.Scheme.StartsWith("https", StringComparison.CurrentCultureIgnoreCase))
             {
                 return true;
             }
