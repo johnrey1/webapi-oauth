@@ -4,7 +4,7 @@
       <Column Name="Id" Type="System.Int32" IsPrimaryKey="true" CanBeNull="false" />
       <Column Name="Uri" Type="System.String" CanBeNull="false" />
       <Column Name="Description" Type="System.String" CanBeNull="false" />
-      <Association Name="Resource_ResourceAction" Member="RoleResourceActions" ThisKey="Id" OtherKey="ResourceId" Type="RoleResourceAction" />
+      <Association Name="Resource_RoleResourceAction" Member="RoleResourceActions" ThisKey="Id" OtherKey="ResourceId" Type="RoleResourceAction" />
     </Type>
   </Table>
   <Table Name="RoleResourceAction" Member="RoleResourceActions">
@@ -13,8 +13,8 @@
       <Column Name="RoleId" Type="System.Int32" CanBeNull="false" />
       <Column Name="ResourceId" Type="System.Int32" CanBeNull="false" />
       <Column Name="AllowedMethods" Type="System.String" CanBeNull="false" />
-      <Association Name="Resource_ResourceAction" Member="Resource" ThisKey="ResourceId" OtherKey="Id" Type="Resource" IsForeignKey="true" />
-      <Association Name="Role_ResourceAction" Member="Role" ThisKey="RoleId" OtherKey="Id" Type="Role" IsForeignKey="true" />
+      <Association Name="Resource_RoleResourceAction" Member="Resource" ThisKey="ResourceId" OtherKey="Id" Type="Resource" IsForeignKey="true" />
+      <Association Name="Role_RoleResourceAction" Member="Role" ThisKey="RoleId" OtherKey="Id" Type="Role" IsForeignKey="true" />
     </Type>
   </Table>
   <Table Name="Role" Member="Roles">
@@ -22,7 +22,7 @@
       <Column Name="Id" Type="System.Int32" IsPrimaryKey="true" CanBeNull="false" />
       <Column Name="Name" Type="System.String" CanBeNull="false" />
       <Column Name="Description" Type="System.String" CanBeNull="false" />
-      <Association Name="Role_ResourceAction" Member="RoleResourceActions" ThisKey="Id" OtherKey="RoleId" Type="RoleResourceAction" />
+      <Association Name="Role_RoleResourceAction" Member="RoleResourceActions" ThisKey="Id" OtherKey="RoleId" Type="RoleResourceAction" />
       <Association Name="Role_UserRole" Member="UserRoles" ThisKey="Id" OtherKey="RoleId" Type="UserRole" />
     </Type>
   </Table>
@@ -33,21 +33,24 @@
       <Column Name="UserId" Type="System.Int32" CanBeNull="false" />
       <Column Name="Scope" Type="System.String" CanBeNull="false" />
       <Column Name="Created" Type="System.DateTime" CanBeNull="false" />
-      <Column Name="Expiration" Type="System.DateTime" CanBeNull="true" />
-      <Association Name="Application_ClientAppAuthorization" Member="Application" ThisKey="AppId" OtherKey="Id" Type="Application" IsForeignKey="true" />
+      <Column Name="AuthTokenExpiration" Storage="_Expiration" Type="System.DateTime" CanBeNull="true" />
+      <Column Name="Token" Member="AuthToken" Type="System.String" CanBeNull="false" />
+      <Column Name="RefreshToken" Type="System.String" CanBeNull="true" />
+      <Column Name="RefreshTokenExpiration" Type="System.DateTime" CanBeNull="true" />
+      <Association Name="Application_AppAuthorization" Member="Application" ThisKey="AppId" OtherKey="Id" Type="Application" IsForeignKey="true" />
       <Association Name="User_AppAuthorization" Member="User" ThisKey="UserId" OtherKey="Id" Type="User" IsForeignKey="true" />
     </Type>
   </Table>
   <Table Name="Application" Member="Applications">
     <Type Name="Application">
       <Column Name="Id" Type="System.Int32" IsPrimaryKey="true" CanBeNull="false" />
-      <Column Name="AppPublicId" Type="System.Guid" CanBeNull="false" />
-      <Column Name="AppSecret" Type="System.Byte[]" CanBeNull="false" />
+      <Column Name="AppPublicId" Type="System.String" CanBeNull="false" />
+      <Column Name="AppSecret" Type="System.String" CanBeNull="false" />
       <Column Name="Name" Type="System.String" CanBeNull="false" />
       <Column Name="Created" Type="System.DateTime" CanBeNull="false" />
       <Column Name="OwnerId" Type="System.Int32" CanBeNull="true" />
-      <Association Name="Application_ClientAppAuthorization" Member="AppAuthorizations" ThisKey="Id" OtherKey="AppId" Type="AppAuthorization" />
-      <Association Name="User_ClientApplication" Member="User" ThisKey="OwnerId" OtherKey="Id" Type="User" IsForeignKey="true" />
+      <Association Name="Application_AppAuthorization" Member="AppAuthorizations" ThisKey="Id" OtherKey="AppId" Type="AppAuthorization" />
+      <Association Name="User_Application" Member="User" ThisKey="OwnerId" OtherKey="Id" Type="User" IsForeignKey="true" />
     </Type>
   </Table>
   <Table Name="User" Member="Users">
@@ -55,9 +58,9 @@
       <Column Name="Id" Type="System.Int32" IsPrimaryKey="true" CanBeNull="false" />
       <Column Name="ClaimId" Type="System.String" CanBeNull="false" />
       <Column Name="ClaimName" Type="System.String" CanBeNull="false" />
-      <Association Name="User_UserRole" Member="UserRoles" ThisKey="Id" OtherKey="UserId" Type="UserRole" />
-      <Association Name="User_ClientApplication" Member="Applications" ThisKey="Id" OtherKey="OwnerId" Type="Application" />
       <Association Name="User_AppAuthorization" Member="AppAuthorizations" ThisKey="Id" OtherKey="UserId" Type="AppAuthorization" />
+      <Association Name="User_Application" Member="Applications" ThisKey="Id" OtherKey="OwnerId" Type="Application" />
+      <Association Name="User_UserRole" Member="UserRoles" ThisKey="Id" OtherKey="UserId" Type="UserRole" />
     </Type>
   </Table>
   <Table Name="UserRole" Member="UserRoles">

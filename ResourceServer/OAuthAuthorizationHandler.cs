@@ -2,8 +2,8 @@
 {
     using System;
     using System.Net.Http;
-    using System.Security.Principal;
     using System.Threading.Tasks;
+    using System.Web;
 
     /// <summary>
     /// A WebApi Message handler to check authorization on incoming web requests
@@ -24,8 +24,6 @@
         /// <returns></returns>
         protected override System.Threading.Tasks.Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, System.Threading.CancellationToken cancellationToken)
         {
-            
-
             try
             {
                 var tcs = new TaskCompletionSource<HttpResponseMessage>();
@@ -34,6 +32,12 @@
                 {                    
                     tcs.SetResult(new HttpResponseMessage(System.Net.HttpStatusCode.BadRequest));
                     return tcs.Task;        
+                }
+
+                // skip oauth requests
+                if (request.RequestUri.AbsolutePath.StartsWith("/" + OAuthApiApplication.OAUTH_ROUTE_PATTERN))
+                {
+                    return base.SendAsync(request, cancellationToken);
                 }
 
                 if (!IsValidAccessToken(request))
@@ -66,11 +70,10 @@
         /// <returns></returns>
         private static bool IsValidAccessToken(HttpRequestMessage request)
         {
-            var accessToken = request.RequestUri.ParseQueryString()["access_token"];
+            var accessToken = HttpUtility.UrlDecode(request.RequestUri.ParseQueryString()["access_token"]);
 
-            // verify token exists and is not expired
-            
-            return accessToken == "asdf";
+
+            return OAuthTokenUtility.ValidateAccessToken(accessToken);
         }
 
         private static bool IsTokenAuthorized(HttpRequestMessage request)

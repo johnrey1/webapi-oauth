@@ -1,38 +1,58 @@
 ﻿namespace WebApi.OAuth2 {
-	using System;
-    using System.Net;
-    using System.Web;
-	using System.Web.Mvc;
 
+    using System;
+    using System.Linq;
+    using System.Net.Http;
+    using System.Web.Http;
+    using WebApi.OAuth2.Model;
 
-	public class OAuthController : Controller {
-		
+	public class OAuthController : ApiController {
+
+        public static readonly string GRANT_REFRESH = "refresh_token";
+        public static readonly string GRANT_ACCESS = "access_token";
+
 		/// <summary>
 		/// The OAuth 2.0 token endpoint.
 		/// </summary>
 		/// <returns>The response to the Client.</returns>
-		public ActionResult Token() {
-            throw new NotImplementedException();
-		}
+		public string Post(AccessTokenRequest tokenRequest) {
 
-		/// <summary>
-		/// Prompts the user to authorize a client to access the user's private data.
-		/// </summary>
-		/// <returns>The browser HTML response that prompts the user to authorize the client.</returns>
-		[Authorize, AcceptVerbs(HttpVerbs.Get | HttpVerbs.Post)]
-		
-		public ActionResult Authorize() {
-            throw new NotImplementedException();
-		}
+            // only 'refresh' is implemented
+            if (tokenRequest.grant_type == GRANT_REFRESH)
+            {
+                string refreshToken = this.Request.RequestUri.ParseQueryString()["refresh_token"];
 
-		/// <summary>
-		/// Processes the user's response as to whether to authorize a Client to access his/her private data.
-		/// </summary>
-		/// <param name="isApproved">if set to <c>true</c>, the user has authorized the Client; <c>false</c> otherwise.</param>
-		/// <returns>HTML response that redirects the browser to the Client.</returns>
-		[Authorize, HttpPost, ValidateAntiForgeryToken]
-		public ActionResult AuthorizeResponse(bool isApproved) {
-            throw new NotImplementedException();
+                AppAuthorization appAuth = OAuthTokenUtility.ValidateRefreshToken(tokenRequest.app_id, tokenRequest.app_secret, refreshToken);
+
+                if (appAuth == null)
+                {
+                    // invalid request
+                    return Newtonsoft.Json.JsonConvert.SerializeObject(new ErrorMessage() { Type = "OAuthException", Message = "could not grant refreshed access token. please check your client id, client secret, and refresh token id (did it expire?)" });
+                }
+                else
+                {
+                    // create new access token
+                    AppAuthorization newAppAuth = OAuthTokenUtility.AccessTokenRefresh(appAuth);
+
+                    return Newtonsoft.Json.JsonConvert.SerializeObject(new AccessTokenMessage()
+                    {
+                        access_token = newAppAuth.AuthToken,
+                        refresh_token = newAppAuth.RefreshToken,
+                        token_type = "bearer",
+                        expiration_utc = newAppAuth.AuthTokenExpiration
+                    });
+                }
+            }
+
+            if (tokenRequest.grant_type == GRANT_ACCESS)
+            {
+                // requesting an authorization token using a short lived auth code
+                var authCode = this.Request.RequestUri.ParseQueryString()["code"];
+
+                return Newtonsoft.Json.JsonConvert.SerializeObject(new ErrorMessage() { Type = "OAuthException", Message = "new access tokens not granted by this server" }); 
+            }
+
+            return Newtonsoft.Json.JsonConvert.SerializeObject(new ErrorMessage() { Type = "OAuthException", Message = "not a valid grant_type" });
 		}
-	}
+    }
 }

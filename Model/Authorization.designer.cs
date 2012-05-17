@@ -225,7 +225,7 @@ namespace WebApi.OAuth2
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="Resource_ResourceAction", Storage="_RoleResourceActions", ThisKey="Id", OtherKey="ResourceId")]
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="Resource_RoleResourceAction", Storage="_RoleResourceActions", ThisKey="Id", OtherKey="ResourceId")]
 		public EntitySet<RoleResourceAction> RoleResourceActions
 		{
 			get
@@ -398,7 +398,7 @@ namespace WebApi.OAuth2
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="Resource_ResourceAction", Storage="_Resource", ThisKey="ResourceId", OtherKey="Id", IsForeignKey=true)]
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="Resource_RoleResourceAction", Storage="_Resource", ThisKey="ResourceId", OtherKey="Id", IsForeignKey=true)]
 		public Resource Resource
 		{
 			get
@@ -432,7 +432,7 @@ namespace WebApi.OAuth2
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="Role_ResourceAction", Storage="_Role", ThisKey="RoleId", OtherKey="Id", IsForeignKey=true)]
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="Role_RoleResourceAction", Storage="_Role", ThisKey="RoleId", OtherKey="Id", IsForeignKey=true)]
 		public Role Role
 		{
 			get
@@ -582,7 +582,7 @@ namespace WebApi.OAuth2
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="Role_ResourceAction", Storage="_RoleResourceActions", ThisKey="Id", OtherKey="RoleId")]
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="Role_RoleResourceAction", Storage="_RoleResourceActions", ThisKey="Id", OtherKey="RoleId")]
 		public EntitySet<RoleResourceAction> RoleResourceActions
 		{
 			get
@@ -671,6 +671,12 @@ namespace WebApi.OAuth2
 		
 		private System.Nullable<System.DateTime> _Expiration;
 		
+		private string _AuthToken;
+		
+		private string _RefreshToken;
+		
+		private System.Nullable<System.DateTime> _RefreshTokenExpiration;
+		
 		private EntityRef<Application> _Application;
 		
 		private EntityRef<User> _User;
@@ -689,8 +695,14 @@ namespace WebApi.OAuth2
     partial void OnScopeChanged();
     partial void OnCreatedChanging(System.DateTime value);
     partial void OnCreatedChanged();
-    partial void OnExpirationChanging(System.Nullable<System.DateTime> value);
-    partial void OnExpirationChanged();
+    partial void OnAuthTokenExpirationChanging(System.Nullable<System.DateTime> value);
+    partial void OnAuthTokenExpirationChanged();
+    partial void OnAuthTokenChanging(string value);
+    partial void OnAuthTokenChanged();
+    partial void OnRefreshTokenChanging(string value);
+    partial void OnRefreshTokenChanged();
+    partial void OnRefreshTokenExpirationChanging(System.Nullable<System.DateTime> value);
+    partial void OnRefreshTokenExpirationChanged();
     #endregion
 		
 		public AppAuthorization()
@@ -809,7 +821,7 @@ namespace WebApi.OAuth2
 		}
 		
 		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Expiration")]
-		public System.Nullable<System.DateTime> Expiration
+		public System.Nullable<System.DateTime> AuthTokenExpiration
 		{
 			get
 			{
@@ -819,16 +831,76 @@ namespace WebApi.OAuth2
 			{
 				if ((this._Expiration != value))
 				{
-					this.OnExpirationChanging(value);
+					this.OnAuthTokenExpirationChanging(value);
 					this.SendPropertyChanging();
 					this._Expiration = value;
-					this.SendPropertyChanged("Expiration");
-					this.OnExpirationChanged();
+					this.SendPropertyChanged("AuthTokenExpiration");
+					this.OnAuthTokenExpirationChanged();
 				}
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="Application_ClientAppAuthorization", Storage="_Application", ThisKey="AppId", OtherKey="Id", IsForeignKey=true)]
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Name="Token", Storage="_AuthToken", CanBeNull=false)]
+		public string AuthToken
+		{
+			get
+			{
+				return this._AuthToken;
+			}
+			set
+			{
+				if ((this._AuthToken != value))
+				{
+					this.OnAuthTokenChanging(value);
+					this.SendPropertyChanging();
+					this._AuthToken = value;
+					this.SendPropertyChanged("AuthToken");
+					this.OnAuthTokenChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_RefreshToken")]
+		public string RefreshToken
+		{
+			get
+			{
+				return this._RefreshToken;
+			}
+			set
+			{
+				if ((this._RefreshToken != value))
+				{
+					this.OnRefreshTokenChanging(value);
+					this.SendPropertyChanging();
+					this._RefreshToken = value;
+					this.SendPropertyChanged("RefreshToken");
+					this.OnRefreshTokenChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_RefreshTokenExpiration")]
+		public System.Nullable<System.DateTime> RefreshTokenExpiration
+		{
+			get
+			{
+				return this._RefreshTokenExpiration;
+			}
+			set
+			{
+				if ((this._RefreshTokenExpiration != value))
+				{
+					this.OnRefreshTokenExpirationChanging(value);
+					this.SendPropertyChanging();
+					this._RefreshTokenExpiration = value;
+					this.SendPropertyChanged("RefreshTokenExpiration");
+					this.OnRefreshTokenExpirationChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="Application_AppAuthorization", Storage="_Application", ThisKey="AppId", OtherKey="Id", IsForeignKey=true)]
 		public Application Application
 		{
 			get
@@ -925,9 +997,9 @@ namespace WebApi.OAuth2
 		
 		private int _Id;
 		
-		private System.Guid _AppPublicId;
+		private string _AppPublicId;
 		
-		private byte[] _AppSecret;
+		private string _AppSecret;
 		
 		private string _Name;
 		
@@ -945,9 +1017,9 @@ namespace WebApi.OAuth2
     partial void OnCreated();
     partial void OnIdChanging(int value);
     partial void OnIdChanged();
-    partial void OnAppPublicIdChanging(System.Guid value);
+    partial void OnAppPublicIdChanging(string value);
     partial void OnAppPublicIdChanged();
-    partial void OnAppSecretChanging(byte[] value);
+    partial void OnAppSecretChanging(string value);
     partial void OnAppSecretChanged();
     partial void OnNameChanging(string value);
     partial void OnNameChanged();
@@ -984,8 +1056,8 @@ namespace WebApi.OAuth2
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_AppPublicId")]
-		public System.Guid AppPublicId
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_AppPublicId", CanBeNull=false)]
+		public string AppPublicId
 		{
 			get
 			{
@@ -1005,7 +1077,7 @@ namespace WebApi.OAuth2
 		}
 		
 		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_AppSecret", CanBeNull=false)]
-		public byte[] AppSecret
+		public string AppSecret
 		{
 			get
 			{
@@ -1088,7 +1160,7 @@ namespace WebApi.OAuth2
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="Application_ClientAppAuthorization", Storage="_AppAuthorizations", ThisKey="Id", OtherKey="AppId")]
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="Application_AppAuthorization", Storage="_AppAuthorizations", ThisKey="Id", OtherKey="AppId")]
 		public EntitySet<AppAuthorization> AppAuthorizations
 		{
 			get
@@ -1101,7 +1173,7 @@ namespace WebApi.OAuth2
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="User_ClientApplication", Storage="_User", ThisKey="OwnerId", OtherKey="Id", IsForeignKey=true)]
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="User_Application", Storage="_User", ThisKey="OwnerId", OtherKey="Id", IsForeignKey=true)]
 		public User User
 		{
 			get
@@ -1180,11 +1252,11 @@ namespace WebApi.OAuth2
 		
 		private string _ClaimName;
 		
-		private EntitySet<UserRole> _UserRoles;
+		private EntitySet<AppAuthorization> _AppAuthorizations;
 		
 		private EntitySet<Application> _Applications;
 		
-		private EntitySet<AppAuthorization> _AppAuthorizations;
+		private EntitySet<UserRole> _UserRoles;
 		
     #region Extensibility Method Definitions
     partial void OnLoaded();
@@ -1200,9 +1272,9 @@ namespace WebApi.OAuth2
 		
 		public User()
 		{
-			this._UserRoles = new EntitySet<UserRole>(new Action<UserRole>(this.attach_UserRoles), new Action<UserRole>(this.detach_UserRoles));
-			this._Applications = new EntitySet<Application>(new Action<Application>(this.attach_Applications), new Action<Application>(this.detach_Applications));
 			this._AppAuthorizations = new EntitySet<AppAuthorization>(new Action<AppAuthorization>(this.attach_AppAuthorizations), new Action<AppAuthorization>(this.detach_AppAuthorizations));
+			this._Applications = new EntitySet<Application>(new Action<Application>(this.attach_Applications), new Action<Application>(this.detach_Applications));
+			this._UserRoles = new EntitySet<UserRole>(new Action<UserRole>(this.attach_UserRoles), new Action<UserRole>(this.detach_UserRoles));
 			OnCreated();
 		}
 		
@@ -1266,20 +1338,20 @@ namespace WebApi.OAuth2
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="User_UserRole", Storage="_UserRoles", ThisKey="Id", OtherKey="UserId")]
-		public EntitySet<UserRole> UserRoles
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="User_AppAuthorization", Storage="_AppAuthorizations", ThisKey="Id", OtherKey="UserId")]
+		public EntitySet<AppAuthorization> AppAuthorizations
 		{
 			get
 			{
-				return this._UserRoles;
+				return this._AppAuthorizations;
 			}
 			set
 			{
-				this._UserRoles.Assign(value);
+				this._AppAuthorizations.Assign(value);
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="User_ClientApplication", Storage="_Applications", ThisKey="Id", OtherKey="OwnerId")]
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="User_Application", Storage="_Applications", ThisKey="Id", OtherKey="OwnerId")]
 		public EntitySet<Application> Applications
 		{
 			get
@@ -1292,16 +1364,16 @@ namespace WebApi.OAuth2
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="User_AppAuthorization", Storage="_AppAuthorizations", ThisKey="Id", OtherKey="UserId")]
-		public EntitySet<AppAuthorization> AppAuthorizations
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="User_UserRole", Storage="_UserRoles", ThisKey="Id", OtherKey="UserId")]
+		public EntitySet<UserRole> UserRoles
 		{
 			get
 			{
-				return this._AppAuthorizations;
+				return this._UserRoles;
 			}
 			set
 			{
-				this._AppAuthorizations.Assign(value);
+				this._UserRoles.Assign(value);
 			}
 		}
 		
@@ -1325,13 +1397,13 @@ namespace WebApi.OAuth2
 			}
 		}
 		
-		private void attach_UserRoles(UserRole entity)
+		private void attach_AppAuthorizations(AppAuthorization entity)
 		{
 			this.SendPropertyChanging();
 			entity.User = this;
 		}
 		
-		private void detach_UserRoles(UserRole entity)
+		private void detach_AppAuthorizations(AppAuthorization entity)
 		{
 			this.SendPropertyChanging();
 			entity.User = null;
@@ -1349,13 +1421,13 @@ namespace WebApi.OAuth2
 			entity.User = null;
 		}
 		
-		private void attach_AppAuthorizations(AppAuthorization entity)
+		private void attach_UserRoles(UserRole entity)
 		{
 			this.SendPropertyChanging();
 			entity.User = this;
 		}
 		
-		private void detach_AppAuthorizations(AppAuthorization entity)
+		private void detach_UserRoles(UserRole entity)
 		{
 			this.SendPropertyChanging();
 			entity.User = null;
