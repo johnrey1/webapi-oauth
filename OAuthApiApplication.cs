@@ -15,8 +15,6 @@
 
         protected virtual void Application_Start()
         {
-            CreateOAuthDb();
-            
             // Add the OAuth Authorization handler to validate all requests
             GlobalConfiguration.Configuration.MessageHandlers.Add(new OAuthAuthorizationHandler());
             
@@ -29,21 +27,5 @@
             defaults: new { controller = "OAuth"}
             );
         }
-
-        private void CreateOAuthDb()
-        {
-            // Configure the auth database
-            AuthorizationDataContext oauthDataCtxt = new AuthorizationDataContext(System.Configuration.ConfigurationManager.ConnectionStrings["OAuthDb"].ConnectionString);
-            if (oauthDataCtxt.DatabaseExists())
-            {
-                Console.WriteLine("database already exists!");
-            }
-            else
-            {
-                oauthDataCtxt.CreateDatabase();
-            }
-        }
-
-
     }
 }
