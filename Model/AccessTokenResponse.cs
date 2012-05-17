@@ -8,5 +8,6 @@
         public string refresh_token { get; set; }
         public DateTime? expiration_utc { get; set; }
         public string token_type { get; set; }
+        public string scope { get; set; }
     }
 }

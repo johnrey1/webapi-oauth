@@ -3,27 +3,70 @@
     using System;
     using System.Linq;
     using System.Net.Http;
+    using System.Collections.Generic;
 
     public class OAuthTokenUtility
     {
 
-        public static bool ValidateAccessToken(string accessToken)
+        public static bool ValidateAccessToken(string accessToken, HttpRequestMessage request)
         {
             using (AuthorizationDataContext oauthDataCtxt = new AuthorizationDataContext(System.Configuration.ConfigurationManager.ConnectionStrings["OAuthDb"].ConnectionString))
             {
+                // First, ensure the token is valid and not expired
                 var appAuth = (
                                 from appAuths in oauthDataCtxt.AppAuthorizations
                                 where appAuths.AuthToken == accessToken && (!appAuths.AuthTokenExpiration.HasValue || appAuths.AuthTokenExpiration.Value <= DateTime.UtcNow)
                                 select appAuths
                               ).FirstOrDefault();
 
-                return appAuth != null;
-            }
-        }
+                if (appAuth == null)
+                {   // return invalid token error message
+                    return false;
+                }
 
-        public static bool AuthorizeRequest(HttpRequestMessage request, string accessToken)
-        {
-            return false;
+                // scope == role
+                string[] scopes = appAuth.Scope.ToLower().Split();
+
+
+                // TODO: do we want to deactivate the token if scopes are removed from the user?
+                // Next, ensure the scope is a valid scope for the delegated user
+                var userRoles = (from userRole in oauthDataCtxt.UserRoles
+                                 where userRole.UserId == appAuth.UserId
+                                 select userRole.Role).Where(r => scopes.Contains(r.Name.ToLower()));
+
+                if (userRoles == null || userRoles.Count() == 0)
+                {   // TODO: return invalid scope error message
+                    return false;
+                }
+
+                List<int> userRoleIdList = new List<int>();
+                userRoles.ToList().ForEach( r => userRoleIdList.Add(r.Id));
+
+                // validate that request / action is contained within role
+                var allowedActions = from roleAction in oauthDataCtxt.RoleResourceActions
+                                     where userRoleIdList.Contains(roleAction.RoleId)
+                                     select roleAction;
+
+                if (allowedActions == null || allowedActions.Count() == 0)
+                {
+                    // TODO: message of invalid roles
+                    return false;
+                }
+                else
+                {
+                    foreach (var action in allowedActions)
+                    {
+                        // TODO: regex pattern matching on uri
+                        if (action.Resource.Uri.Equals(request.RequestUri.AbsolutePath, StringComparison.CurrentCultureIgnoreCase)
+                                && action.AllowedMethods.ToUpper().Contains(request.Method.Method.ToUpper()))
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            }
         }
 
         public static AppAuthorization ValidateRefreshToken(string appId, string appSecret, string refreshToken)

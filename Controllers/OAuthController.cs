@@ -39,7 +39,8 @@
                         access_token = newAppAuth.AuthToken,
                         refresh_token = newAppAuth.RefreshToken,
                         token_type = "bearer",
-                        expiration_utc = newAppAuth.AuthTokenExpiration
+                        expiration_utc = newAppAuth.AuthTokenExpiration,
+                        scope = newAppAuth.Scope
                     });
                 }
             }

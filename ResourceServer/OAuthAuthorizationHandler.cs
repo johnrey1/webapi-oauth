@@ -40,20 +40,12 @@
                     return base.SendAsync(request, cancellationToken);
                 }
 
-                if (!IsValidAccessToken(request))
+                if (!IsAccessTokenValid(request))
                 {
                     // return 401 error
                     tcs.SetResult(new HttpResponseMessage(System.Net.HttpStatusCode.Unauthorized));
                     return tcs.Task;
                 }
-
-                if (!IsTokenAuthorized(request))
-                {
-                    // return 401 error
-                    tcs.SetResult(new HttpResponseMessage(System.Net.HttpStatusCode.Forbidden));
-                    return tcs.Task;
-                }
-
             }
             catch (Exception ex)
             {
@@ -68,24 +60,12 @@
         /// </summary>
         /// <param name="accessToken"></param>
         /// <returns></returns>
-        private static bool IsValidAccessToken(HttpRequestMessage request)
+        private static bool IsAccessTokenValid(HttpRequestMessage request)
         {
             var accessToken = HttpUtility.UrlDecode(request.RequestUri.ParseQueryString()["access_token"]);
 
-
-            return OAuthTokenUtility.ValidateAccessToken(accessToken);
-        }
-
-        private static bool IsTokenAuthorized(HttpRequestMessage request)
-        {
-            // get role by access token
-            // get ownerid by access token
-            // get list of roles by access token
-            // validate that request / action is contained within role
-            // get list of roles by owner
-            // validate that roles of access token are still valid for the owner ( should we invalidate all tokens when a users role changes?)
-            return true;
-        }
+            return OAuthTokenUtility.ValidateAccessToken(accessToken, request);
+        }        
 
         private static bool IsSsl(HttpRequestMessage request)
         {
