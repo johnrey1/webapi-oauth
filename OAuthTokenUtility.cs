@@ -15,7 +15,7 @@
                 // First, ensure the token is valid and not expired
                 var appAuth = (
                                 from appAuths in oauthDataCtxt.AppAuthorizations
-                                where appAuths.AuthToken == accessToken && (!appAuths.AuthTokenExpiration.HasValue || appAuths.AuthTokenExpiration.Value <= DateTime.UtcNow)
+                                where appAuths.AuthToken == accessToken && (!appAuths.AuthTokenExpiration.HasValue || appAuths.AuthTokenExpiration.Value > DateTime.UtcNow)
                                 select appAuths
                               ).FirstOrDefault();
 
@@ -79,7 +79,7 @@
                           select (
                                   from authorizations in oauthDataCtxt.AppAuthorizations
                                   where authorizations.RefreshToken == refreshToken
-                                          && (authorizations.RefreshTokenExpiration == null || authorizations.RefreshTokenExpiration < DateTime.UtcNow)
+                                          && (authorizations.RefreshTokenExpiration == null || authorizations.RefreshTokenExpiration > DateTime.UtcNow)
                                   select authorizations
                                   ).FirstOrDefault();
 
